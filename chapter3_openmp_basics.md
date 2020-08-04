@@ -216,6 +216,10 @@ for(...)
 }
 ```
 
+example:
+
+![ordered](./image/ordered.png)
+
 ### 2.8. Reductions
 
 this clause performs a reduction:
