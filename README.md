@@ -13,3 +13,7 @@
 ## [Chapter 8: MPI Basics](./chapter8_mpi_basics.md)
 
 ## [Chapter 9: MPI Advances](./chapter9_mpi_advances.md)
+
+## [Chapter 10: MPI More Advances](./chapter10_mpi_more_advances.md)
+
+## [Chapter 11: Scaling](./chapter11_scaling.md)
