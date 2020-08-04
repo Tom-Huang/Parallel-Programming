@@ -113,7 +113,7 @@ local variable: i
 
 5. lastprivate(var-list)
     * copy the last to out of the region
-    * variables are private but the value of the thread executing the last iteration of a parallel loop in sequential order is copied to the variable outside of the region
+    * variables are private but the value of the thread executing the last iteration of a parallel loop in sequential order is copied to the variable outside of the region(irrelevant to the threads, only relevant to the last loop iterations)
    
 * the default sharing attribute for global and static variable is `shared`
 * the default sharing attribute for `#pragma omp task` region is `firstprivate`
