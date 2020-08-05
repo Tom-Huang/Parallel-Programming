@@ -17,3 +17,5 @@
 ## [Chapter 10: MPI More Advances](./chapter10_mpi_more_advances.md)
 
 ## [Chapter 11: Scaling](./chapter11_scaling.md)
+
+## [Exam quick check](./exam_quick_check.md)
