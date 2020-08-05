@@ -155,6 +155,7 @@ For determinning the source: the source should always be the first operation: wr
         s2: c[i] = a[i-1] * 2;
     }
     ```
+
 3. loop fusion
 
     increases granularity
