@@ -16,6 +16,14 @@
         - [2.2.4. ordered](#224-ordered)
         - [2.2.5. reduction](#225-reduction)
         - [2.2.6. runtime routines](#226-runtime-routines)
+- [3. SIMD](#3-simd)
+    - [3.1. compile](#31-compile)
+    - [3.2. basics](#32-basics)
+    - [3.3. operations](#33-operations)
+- [4. MPI](#4-mpi)
+    - [4.1. compile](#41-compile)
+    - [4.2. basics](#42-basics)
+        - [4.2.1. reuse processes for parallelization](#421-reuse-processes-for-parallelization)
 
 <!-- /TOC -->
 ## 1. pthread
@@ -320,3 +328,184 @@ int omp_get_thread_num();
 // get the number of processors
 int omp_get_num_procs();
 ```
+
+## 3. SIMD
+
+### 3.1. compile
+
+```c++
+CXX = g++
+CXX_FLAGS = --std=c++17 -Wall -Wextra -mavx -O3 -g
+
+all: sequential_implementation student_submission
+
+sequential_implementation: sequential_implementation.cpp
+$(CXX) $(CXX_FLAGS) -o sequential_implementation sequential_implementation.cpp
+
+student_submission: student_submission.cpp
+$(CXX) $(CXX_FLAGS) -o student_submission student_submission.cpp
+
+clean:
+rm -f sequential_implementation student_submission
+```
+
+### 3.2. basics
+
+```c++
+#include <immintrin.h>
+#define SIZE 1511
+// define aligned iteration number
+const int aligned = SIZE - SIZE % 8;
+
+float a[SIZE];
+float b[SIZE];
+float c = 0;
+
+__m256 partial_sum = _mm256_set1_ps(0);
+
+// iteration step set to 8
+for(int k = 0; k < aligned; k+=8)
+{
+    // define intrinsics variable
+    __m256 a_i = _mm256_loadu_ps(a + k);
+    __m256 b_i = _mm256_loadu_ps(b + k);
+    partial_sum = _mm256_add_ps(partial_sum, _mm256_mul_ps(a_i, b_i));
+}
+
+float result[8];
+
+// copy the vector(8 floats) to main memory
+_mm256_storeu_ps(resutl, partial_sum);
+
+for (int i = 0; i < 8; i++)
+{
+    c += result[i];
+}
+
+// calculate the remainder
+for(int k = aligned; k < SIZE; k++)
+{
+    c += a[k] * b[k];
+}
+```
+
+### 3.3. operations
+
+```
+
+```
+
+## 4. MPI
+
+### 4.1. compile
+
+```Makefile
+CXX = mpicxx
+CXX_FLAGS = --std=c++17 -Wall -Wextra -march=native -O3 -g -DOMPI_SKIP_MPICXX
+# this compiler definition is needed to silence warnings caused by the openmpi CXX
+# bindings that are deprecated. This is needed on gcc 8 forward.
+# see: https://github.com/open-mpi/ompi/issues/5157
+
+all: sequential_implementation student_submission
+
+sequential_implementation: sequential_implementation.cpp
+	$(CXX) $(CXX_FLAGS) -o sequential_implementation sequential_implementation.cpp
+
+student_submission: student_submission.cpp
+	$(CXX) $(CXX_FLAGS) -o student_submission student_submission.cpp
+
+clean:
+	rm -f sequential_implementation student_submission
+```
+
+### 4.2. basics
+
+* first iteration doesn't need to receive
+* last iteration doesn't need to send
+* make use of non-blocking time between start and complete
+
+```c++
+#include <mpi.h>
+
+int main(int argc, char** argv)
+{
+    // init
+    MPI_Init(&argc, &argv);
+
+    // get rank and size
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // send and receive
+    // don't receive for the first rank
+    if (rank > 0)
+        MPI_Recv(&value, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, &s);
+    // don't send for the last rank
+    if (rank < size - 1)
+        MPI_Send(&value, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+    // output in the last rank
+    if (rank == size -1 )
+        printf("Value from MPI Process 0: %f\n",value);
+
+    // finalize
+    MPI_Finalize();
+}
+```
+
+#### 4.2.1. reuse processes for parallelization
+
+* basic idea of parallelization with MPI: using non-blocking send and receive to overlap processing processes
+
+```c++
+#include <mpi.h>
+#define SIZE 1024
+
+int main(int argc, char** argv)
+{
+    // init
+    MPI_Init(&argc, &argv);
+
+    // get rank and size
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    MPI_Request send_request = MPI_REQUEST_NULL, receive_request = MPI_REQUEST_NULL;
+
+    // pay attention to the iteration step
+    // one round should be an ordered execution of all processes
+    // after executing current i, the process should get ready for index i+size
+    for(int i = rank; i < SIZE; i += size)
+    {
+        // first iteration should not have receive
+        // receive from last rank
+        if(i != 0){
+            MPI_Irecv(void* buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Request *request);
+        }
+
+        // do some works that are irrelevant to the message but heavy
+
+        // complete the receive
+        MPI_Wait(&receive_request, MPI_STATUS_IGNORE);
+
+        // do some works that are relevant to the message
+
+        // last iteration should not have send
+        // send to the next rank
+        if (i != SIZE - 1)
+        {
+            MPI_Send(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm);
+        }
+        else
+        {
+            // output the last block's result
+        }
+    }
+
+    // finalize
+    MPI_Finalize();
+}
+```
+
+

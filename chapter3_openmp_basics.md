@@ -1,5 +1,29 @@
 # Parallel Programming Chapter 3: OpenMP Basics
 
+<!-- TOC -->
+
+- [1. OpenMP Basics](#1-openmp-basics)
+    - [1.1. Compilation](#11-compilation)
+- [2. OpenMP syntax](#2-openmp-syntax)
+    - [2.1. Basic parallelism](#21-basic-parallelism)
+    - [2.2. Sections](#22-sections)
+    - [2.3. For loop](#23-for-loop)
+        - [2.3.1. Schedule](#231-schedule)
+    - [2.4. Shared memory](#24-shared-memory)
+        - [2.4.1. Usage](#241-usage)
+        - [2.4.2. Sharing attributes](#242-sharing-attributes)
+    - [2.5. Synchronization](#25-synchronization)
+        - [2.5.1. Barrier](#251-barrier)
+        - [2.5.2. Master region](#252-master-region)
+        - [2.5.3. Single region](#253-single-region)
+        - [2.5.4. Critical section](#254-critical-section)
+        - [2.5.5. Atomic statements](#255-atomic-statements)
+    - [2.6. Locks](#26-locks)
+    - [2.7. Ordered construct](#27-ordered-construct)
+    - [2.8. Reductions](#28-reductions)
+
+<!-- /TOC -->
+
 ## 1. OpenMP Basics
 
 ### 1.1. Compilation

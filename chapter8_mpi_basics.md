@@ -1,5 +1,15 @@
 # Parallel Programming Chapter 8: MPI basics
 
+<!-- TOC -->
+
+- [1. MPI basics](#1-mpi-basics)
+    - [1.1. how to use](#11-how-to-use)
+        - [1.1.1. Steps](#111-steps)
+        - [1.1.2. All the code](#112-all-the-code)
+    - [1.2. Basic functions](#12-basic-functions)
+
+<!-- /TOC -->
+
 ## 1. MPI basics
 
 ### 1.1. how to use
@@ -62,7 +72,7 @@ int main (int argc, char** argv)
 }
 ```
 
-### Basic functions
+### 1.2. Basic functions
 
 1. `int MPI_Comm_size(MPI_Comm comm, int *size)`
 

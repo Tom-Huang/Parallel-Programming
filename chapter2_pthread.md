@@ -1,5 +1,23 @@
 # Parallel programming Chapter 2: pthread
 
+<!-- TOC -->
+
+- [1. Threads](#1-threads)
+    - [1.1. What is a thread](#11-what-is-a-thread)
+- [2. pthread](#2-pthread)
+    - [2.1. how to use pthread](#21-how-to-use-pthread)
+        - [2.1.1. create/fork/join thread](#211-createforkjoin-thread)
+        - [2.1.2. how to use pthread](#212-how-to-use-pthread)
+        - [2.1.3. how to create lock](#213-how-to-create-lock)
+    - [2.2. lock granularity](#22-lock-granularity)
+        - [2.2.1. Coarse grained locking: one single lock for all data](#221-coarse-grained-locking-one-single-lock-for-all-data)
+        - [2.2.2. Fine grained locking: one lock for each data element](#222-fine-grained-locking-one-lock-for-each-data-element)
+    - [2.3. how to use condition variables](#23-how-to-use-condition-variables)
+        - [2.3.1. some basics](#231-some-basics)
+        - [2.3.2. how to use](#232-how-to-use)
+
+<!-- /TOC -->
+
 ## 1. Threads
 
 ### 1.1. What is a thread

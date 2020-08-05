@@ -122,11 +122,11 @@ void saxpy_simd(float* y, float* x, float a, int n)
     _mm256_mask_storeu_ps(&y[ub], m, vy);
     ```
 
-## SIMD for OpenMP
+## 2. SIMD for OpenMP
 
-### OpenMP SIMD 
+### 2.1. OpenMP SIMD 
 
-#### Only vectorize loop without parallelization
+#### 2.1.1. Only vectorize loop without parallelization
 
 * no parallelization of the loop body
 * cut loop into chunks that fit a SIMD vector register
@@ -167,7 +167,7 @@ void saxpy_simd(float* y, float* x, float a, int n)
     
     7. collapse (n)
 
-#### Vectorize and parallelize loop
+#### 2.1.2. Vectorize and parallelize loop
 
 * subdivide chunks as `#pragma omp parallel for` does
 * for each chunk, vectorize the chunk of vector
@@ -176,7 +176,7 @@ void saxpy_simd(float* y, float* x, float a, int n)
 #pragma omp for simd reduction(+:sum)
 ```
 
-#### Vectorize customized function
+#### 2.1.3. Vectorize customized function
 
 ```c++
 #pragma omp declare simd [clause]
@@ -218,11 +218,11 @@ _ZGVZN16vv_min(%zmm0, %zmm1):
     5. linear (argument-list[:linear-step])
     6. alligned (argument-list[:alignment])
 
-## SIMD considerations
+## 3. SIMD considerations
 
-### Data layout
+### 3.1. Data layout
 
-#### Array-of-Structs(AoS)
+#### 3.1.1. Array-of-Structs(AoS)
 
 ```text
 x | y | z | x | y | z
@@ -235,7 +235,7 @@ each time read one line
 * Pros: good locality of {x, y, z}.
 * Cons: potential for gather & scatter operations.
 
-#### Struct-af-Arrays(SoA)
+#### 3.1.2. Struct-af-Arrays(SoA)
 
 ```text
 x | x | x | x | x | x |
@@ -248,7 +248,7 @@ each time read one line
 * Pros: Contiguous load/store.
 * Cons: Poor locality of {x, y, z}.
 
-#### Hybrid(AoSoA)
+#### 3.1.3. Hybrid(AoSoA)
 
 ```text
 x | x | y | y | z | z |
@@ -261,5 +261,5 @@ each time read one line
 * Pros: contiguous load/store.
 * Cons: not a normal layout.
 
-### Data alignment
+### 3.2. Data alignment
 

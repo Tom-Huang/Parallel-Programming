@@ -1,5 +1,33 @@
 # Parallel Programming Chapter 10: MPI more advances
 
+<!-- TOC -->
+
+- [1. MPI customized data type](#1-mpi-customized-data-type)
+    - [1.1. Datatype magagement](#11-datatype-magagement)
+    - [1.2. Derived MPI Datatypes](#12-derived-mpi-datatypes)
+        - [1.2.1. Contiguously connect existing datatype](#121-contiguously-connect-existing-datatype)
+        - [1.2.2. Constrct a vector datatype](#122-constrct-a-vector-datatype)
+        - [1.2.3. Construct an indexed datatype](#123-construct-an-indexed-datatype)
+        - [1.2.4. Creating a strucct datatype](#124-creating-a-strucct-datatype)
+        - [1.2.5. Construct a subarray datatype](#125-construct-a-subarray-datatype)
+    - [1.3. Inspect datatype](#13-inspect-datatype)
+- [2. Memory, data movement and synchronization](#2-memory-data-movement-and-synchronization)
+    - [2.1. Create public memory](#21-create-public-memory)
+        - [2.1.1. Make and free local memory accessible](#211-make-and-free-local-memory-accessible)
+    - [2.2. Data movement](#22-data-movement)
+        - [2.2.1. Basics operations](#221-basics-operations)
+    - [2.3. RMA synchronization](#23-rma-synchronization)
+        - [2.3.1. Synchronization models](#231-synchronization-models)
+    - [2.4. Shared memory in MPI](#24-shared-memory-in-mpi)
+        - [2.4.1. how to use](#241-how-to-use)
+- [3. MPI + X (OpenMP, ...)](#3-mpi--x-openmp-)
+    - [3.1. Thread safety](#31-thread-safety)
+        - [3.1.1. Four levels of thread safety](#311-four-levels-of-thread-safety)
+        - [3.1.2. Thread safe probing](#312-thread-safe-probing)
+    - [3.2. Hybrid programming MPI + OpenMP](#32-hybrid-programming-mpi--openmp)
+
+<!-- /TOC -->
+
 ## 1. MPI customized data type
 
 use built in MPI data types to build derived data types

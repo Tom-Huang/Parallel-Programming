@@ -1,5 +1,31 @@
 # Parallel Programming Chapter 9: MPI advances
 
+<!-- TOC -->
+
+- [1. Advanced MPI](#1-advanced-mpi)
+    - [1.1. Send variants](#11-send-variants)
+    - [1.2. probe message without receiving](#12-probe-message-without-receiving)
+    - [1.3. Bidirectional exchange of data](#13-bidirectional-exchange-of-data)
+    - [1.4. Nonblocking operations](#14-nonblocking-operations)
+        - [1.4.1. Send operations](#141-send-operations)
+        - [1.4.2. Completion operations](#142-completion-operations)
+        - [1.4.3. Variants of completion](#143-variants-of-completion)
+        - [1.4.4. Bidirectional exchange](#144-bidirectional-exchange)
+        - [1.4.5. Persistent communication](#145-persistent-communication)
+- [2. Collective operations](#2-collective-operations)
+    - [2.1. Synchronization](#21-synchronization)
+    - [2.2. Communication](#22-communication)
+        - [2.2.1. Broadcast](#221-broadcast)
+        - [2.2.2. Gather](#222-gather)
+        - [2.2.3. Scatter](#223-scatter)
+        - [2.2.4. Variations](#224-variations)
+    - [2.3. Reductions](#23-reductions)
+    - [2.4. Nonblocking collectives](#24-nonblocking-collectives)
+- [3. Communicators](#3-communicators)
+    - [3.1. Creating new communicators](#31-creating-new-communicators)
+
+<!-- /TOC -->
+
 ## 1. Advanced MPI
 
 ### 1.1. Send variants
@@ -171,13 +197,13 @@ Three classes of collective operations:
   * combination with subsequent scatter
   * parallel prefix operations
 
-### Synchronization
+### 2.1. Synchronization
 
 1. `MPI_Barrier(MPI_Comm comm)`
 
-### Communication
+### 2.2. Communication
 
-#### Broadcast
+#### 2.2.1. Broadcast
 
 the content of the sent buffer is copied to all other MPI processes
 
@@ -192,7 +218,7 @@ the content of the sent buffer is copied to all other MPI processes
     * root: rank of send/broadcasting MPI process
     * comm: communicator
 
-#### Gather
+#### 2.2.2. Gather
 
 each process send one message to one process, one process collects all messages sent to it.
 
@@ -207,13 +233,13 @@ each process send one message to one process, one process collects all messages 
     * root: rank of receiving MPI process
     * comm: communicator
 
-#### Scatter
+#### 2.2.3. Scatter
 
 one process distribut a series of data to all proceses. Process k receives sendcount elements starting with `sendbuf + k * sendcount`
 
 1. `int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)`
 
-#### Variations
+#### 2.2.4. Variations
 
 1. `MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int *recvcount, int *displs, MPI_Datatype recvtype, int root, MPI_Comm comm)`
 
@@ -226,7 +252,7 @@ one process distribut a series of data to all proceses. Process k receives sendc
 6. `MPI_Alltoallv`: all to all with different numbers of data elements per process
 7. `MIP_Alltoallw`: all to all with different numbers of data elements and types per process
 
-### Reductions
+### 2.3. Reductions
 
 1. `MPI_Reduce(void *sbuf, void *rbuf, int count, MPI_Datatype dtype, MPI_Op op, int root, MPI_Comm comm)`
 
@@ -261,11 +287,11 @@ one process distribut a series of data to all proceses. Process k receives sendc
 
     reduction using a prefix operation
 
-### Nonblocking collectives
+### 2.4. Nonblocking collectives
 
 same concept as non-blocking P2P
 
-## Communicators
+## 3. Communicators
 
 * rank is relative to a communicator
 * communication across communicators are not possible
@@ -273,7 +299,7 @@ same concept as non-blocking P2P
   * `MPI_COMM_WORLD`: all initial MPI processes
   * `MPI_COMM_SELF`: contains only the own MPI process
 
-### Creating new communicators
+### 3.1. Creating new communicators
 
 1. `int MPI_Comm_dup(MPI_Comm comm, MPI_Comm *newcomm)`
 

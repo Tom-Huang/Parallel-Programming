@@ -1,5 +1,20 @@
 # Parallel Programming Chapter 11: Scaling
 
+<!-- TOC -->
+
+- [1. Scaling](#1-scaling)
+    - [1.1. Weak scaling](#11-weak-scaling)
+    - [1.2. Strong scaling](#12-strong-scaling)
+    - [1.3. Impace on programmability](#13-impace-on-programmability)
+        - [1.3.1. Debugging at scale](#131-debugging-at-scale)
+        - [1.3.2. Performance analysis](#132-performance-analysis)
+- [2. Mapping codes to machine](#2-mapping-codes-to-machine)
+    - [2.1. MPI interfaces](#21-mpi-interfaces)
+        - [2.1.1. Grid topologies](#211-grid-topologies)
+        - [2.1.2. Graph topologies](#212-graph-topologies)
+
+<!-- /TOC -->
+
 ## 1. Scaling
 
 ### 1.1. Weak scaling
