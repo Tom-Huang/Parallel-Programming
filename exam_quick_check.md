@@ -9,13 +9,15 @@
     - [1.5. Communication between threads with conditional variables](#15-communication-between-threads-with-conditional-variables)
 - [2. OpenMP](#2-openmp)
     - [2.1. compile](#21-compile)
-    - [2.2. typical concepts](#22-typical-concepts)
-        - [2.2.1. nested](#221-nested)
-        - [2.2.2. sections and task](#222-sections-and-task)
-        - [2.2.3. single and critical and master](#223-single-and-critical-and-master)
-        - [2.2.4. ordered](#224-ordered)
-        - [2.2.5. reduction](#225-reduction)
-        - [2.2.6. runtime routines](#226-runtime-routines)
+    - [2.2. some attention points](#22-some-attention-points)
+        - [2.2.1. schedule](#221-schedule)
+    - [2.3. typical concepts](#23-typical-concepts)
+        - [2.3.1. nested](#231-nested)
+        - [2.3.2. sections and task](#232-sections-and-task)
+        - [2.3.3. single and critical and master](#233-single-and-critical-and-master)
+        - [2.3.4. ordered](#234-ordered)
+        - [2.3.5. reduction](#235-reduction)
+        - [2.3.6. runtime routines](#236-runtime-routines)
 - [3. SIMD](#3-simd)
     - [3.1. compile](#31-compile)
     - [3.2. basics](#32-basics)
@@ -23,7 +25,21 @@
 - [4. MPI](#4-mpi)
     - [4.1. compile](#41-compile)
     - [4.2. basics](#42-basics)
-        - [4.2.1. reuse processes for parallelization](#421-reuse-processes-for-parallelization)
+        - [4.2.1. MPI_Comm_split](#421-mpi_comm_split)
+        - [MPI_Sendrecv](#mpi_sendrecv)
+        - [4.2.2. reuse processes for parallelization](#422-reuse-processes-for-parallelization)
+    - [4.3. all sorts of collectives](#43-all-sorts-of-collectives)
+        - [4.3.1. MPI_Gather](#431-mpi_gather)
+        - [4.3.2. MPI_Allgather](#432-mpi_allgather)
+        - [4.3.3. MPI_Reduce](#433-mpi_reduce)
+        - [4.3.4. MPI_Allreduce](#434-mpi_allreduce)
+        - [4.3.5. MPI_Iallreduce](#435-mpi_iallreduce)
+        - [4.3.6. MPI_Bcast](#436-mpi_bcast)
+        - [4.3.7. MPI_Scatter](#437-mpi_scatter)
+    - [4.4. window allocation](#44-window-allocation)
+        - [4.4.1. allocate and free window](#441-allocate-and-free-window)
+        - [4.4.2. create window](#442-create-window)
+        - [4.4.3. dynamically create](#443-dynamically-create)
 
 <!-- /TOC -->
 ## 1. pthread
@@ -216,9 +232,29 @@ student_submission: student_submission.cpp
 $(CXX) $(CXX_FLAGS) -o student_submission student_submission.cpp 
 ```
 
-### 2.2. typical concepts
+### 2.2. some attention points
 
-#### 2.2.1. nested
+#### 2.2.1. schedule
+
+* if for loop index is defined outside of the loop, check if you need to make it firstprivate. If the index is still used after the loop, check if you need to make it lastprivate.
+* when creating `task`, remember to specify `shared(var)` when you need variable to be shared from global, because by default `task` is `firstprivate`.
+* when creating `task`, remember to let only one thread to create
+    ```c++
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            {
+
+            }
+        }
+    }
+    ```
+
+### 2.3. typical concepts
+
+#### 2.3.1. nested
 
 * two levels nested parallel for loop
 * set number of threads in pragma
@@ -228,7 +264,7 @@ omp_set_nested(2);
 #pragma omp parallel for num_threads(6)
 ```
 
-#### 2.2.2. sections and task
+#### 2.3.2. sections and task
 
 [sections](./chapter3_openmp_basics.md)
 
@@ -268,7 +304,7 @@ omp_set_nested(2);
 }
 ```
 
-#### 2.2.3. single and critical and master
+#### 2.3.3. single and critical and master
 
 [single and critical and master](./chapter3_openmp_basics.md)
 
@@ -284,7 +320,7 @@ omp_set_nested(2);
 
 ```
 
-#### 2.2.4. ordered
+#### 2.3.4. ordered
 
 * make sure that the block is executed in sequential for loop ordered
 
@@ -300,7 +336,7 @@ for(int i = 0; i < 100; i++)
 }
 ```
 
-#### 2.2.5. reduction
+#### 2.3.5. reduction
 
 ```c++
 #pragma omp parallel for reduction(+:var)
@@ -310,7 +346,7 @@ for(int i = 0; i < 100; i++)
 }
 ```
 
-#### 2.2.6. runtime routines
+#### 2.3.6. runtime routines
 
 ```c++
 // set the number of threads
@@ -453,7 +489,83 @@ int main(int argc, char** argv)
 }
 ```
 
-#### 4.2.1. reuse processes for parallelization
+#### 4.2.1. MPI_Comm_split
+
+```c++
+int main ( int argc , char ** argv )
+{
+    int value , temp ;
+    int size , rank , row , col[4] ;
+    MPI_Comm c[4];
+
+    MPI_Init (& argc , & argv );
+    MPI_Comm_size ( MPI_COMM_WORLD , & size );
+    MPI_Comm_rank ( MPI_COMM_WORLD , & rank );
+    
+    col[0] = rank & (1 << 3);
+    col[1] = rank & (1 << 2);
+    col[2] = rank & (1 << 1);
+    col[3] = rank & (1 << 0);
+
+    MPI_Comm_split ( MPI_COMM_WORLD , col[0] , rank , c );
+    MPI_Comm_split ( c[0]           , col[1] , rank , c + 1 );
+    MPI_Comm_split ( c[1]           , col[2] , rank , c + 2 );
+    MPI_Comm_split ( c[2]           , col[3] , rank , c + 3 );
+
+
+    MPI_Allreduce (& rank , & value , 1 , MPI_INT , MPI_MIN , c[3] );
+    if (rank == 10) printf("Value 4 %i\n", value);
+    temp = value ;
+
+    MPI_Allreduce (& temp , & value , 1 , MPI_INT , MPI_SUM , c[1] );
+    if (rank == 11) printf("Value 5 %i\n", value);
+    temp = value ;
+
+    MPI_Allreduce (& temp , & value , 1 , MPI_INT , MPI_MAX , c[2] );
+    if (rank == 12) printf("Value 6 %i\n", value);
+
+    MPI_Finalize ();
+}
+```
+
+#### MPI_Sendrecv
+
+```c++
+int main1(int argc, char* argv[]) {
+    int rank, size, buf;
+    MPI_Init(&argc, &argv); /* starts MPI */
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* process id */
+    MPI_Comm_size(MPI_COMM_WORLD, &size); /* number processes */
+    buf = rank;
+
+    if (rank == 0){
+        MPI_Recv(&buf, 1, MPI_INT, (rank + size - 1) % size /*source*/, 0 /*tag*/, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buf, 1, MPI_INT, (rank + 1) % size /*dest*/,0 /*tag*/,MPI_COMM_WORLD );
+    } else {
+        MPI_Send(&buf, 1, MPI_INT, (rank + 1) % size /*dest*/, 0 /*tag*/, MPI_COMM_WORLD);
+        MPI_Recv(&buf, 1, MPI_INT, (rank + size - 1) % size /*source*/, 0 /*tag*/, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    MPI_Finalize();
+    return 0;
+}
+// can be replace by
+int main2(int argc, char* argv[]) {
+    int rank, size, buf;
+    MPI_Init(&argc, &argv); /* starts MPI */
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* process id */
+    MPI_Comm_size(MPI_COMM_WORLD, &size); /* number processes */
+    buf = rank;
+
+    MPI_Sendrecv(&buf, 1, MPI_INT,(rank + 1) % size /*send dest*/, 0 /*tag*/,
+                 &buf, 1, MPI_INT,(rank + size - 1) % size /*recv source*/, 0 /*tag*/,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    MPI_Finalize();
+    return 0;
+}
+```
+
+#### 4.2.2. reuse processes for parallelization
 
 * basic idea of parallelization with MPI: using non-blocking send and receive to overlap processing processes
 
@@ -508,4 +620,229 @@ int main(int argc, char** argv)
 }
 ```
 
+### 4.3. all sorts of collectives
 
+#### 4.3.1. MPI_Gather
+
+```c++
+int main(int argc, char** argv) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int data[4];
+    data[0] = rank; data[1] = 0; data[2] = 0; data[3] = 0;
+    
+    MPI_Gather(data, 1, MPI_INT, // send
+               data, 1, MPI_INT, // recv
+               0 /*root*/, MPI_COMM_WORLD);
+    MPI_Finalize ();
+}
+```
+
+#### 4.3.2. MPI_Allgather
+
+```c++
+int main(int argc, char** argv) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int data[4];
+    data[0] = rank; data[1] = 0; data[2] = 0; data[3] = 0;
+    MPI_Allgather(data, 1, MPI_INT, data, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Finalize();
+}
+```
+
+#### 4.3.3. MPI_Reduce
+
+```c++
+int main(int argc, char** argv){
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int local_data = 1, global_data = 0;
+    MPI_Reduce(&local_data /*send buffer*/, 
+               &global_data /*recv buffer*/, 1, MPI_INT, 
+               MPI_SUM/*op*/, 0/*root*/, MPI_COMM_WORLD);
+    MPI_Finalize();
+}
+```
+
+#### 4.3.4. MPI_Allreduce
+
+```c++
+int main(int argc, char** argv) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int local_data = 1, global_data = 0;
+    MPI_Allreduce(&local_data, &global_data, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Finalize();
+}
+```
+
+operations:
+
+* MPI_MAX
+* MPI_MIN
+* MPI_SUM
+* MPI_PROD: product
+* MPI_LAND: logical and
+* MPI_BAND: bit-wise and
+* MPI_LOR: logical or
+* MPI_BOR: bit-wise or
+* MPI_LXOR: logical xor
+* MPI_BXOR: bit-wise xor
+
+#### 4.3.5. MPI_Iallreduce
+
+add one more arguments `MPI_Request* req` at the end of `MPI_Allreduce`
+
+```c++
+int main2(int argc , char* argv []) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); MPI_Comm_size(MPI_COMM_WORLD, &size);
+    double a[SIZE], b[SIZE],c[SIZE];
+    double sum_a = 0, sum_b = 0, sum_c = 0, avg_a = 0, avg_b = 0, avg_c = 0;
+    double min_a = MAX_VAL, min_b = MAX_VAL, min_c = MAX_VAL, max_a = -1 , max_b = -1 , max_c = -1;
+    initValues(a, b, c); // Fill our input arrays with data
+
+    for (int i = 0; i < SIZE ; ++i) {
+        sum_a += a[i]; // partial sums over array "a"
+    }
+    avg_a = sum_a / SIZE;
+    MPI_Allreduce(&avg_a, &avg_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    avg_a /= size; // aggregate the average over all processes
+    for (int i = 0; i < SIZE; ++i) {
+        b[i] *= avg_a; // Do some work
+    }
+    for (int i = 0; i < SIZE; ++i) {
+        min_b = MIN(min_b, b[i]); max_b = MAX(max_b, b[i]); // Calculate min , max
+    }
+    MPI_Request req_min, req_max;
+    MPI_Iallreduce(MPI_IN_PLACE, &min_b, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD, &req_min);
+    MPI_Iallreduce(MPI_IN_PLACE, &max_b, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, &req_max);
+
+    for (int i = 0; i < SIZE; ++i) c[i] += avg_a; // Do work
+    MPI_Wait(&req_max, MPI_STATUS_IGNORE); // Wait for needed value
+    for (int i = 0; i < SIZE; ++i) c[i] += max_b / 2.0; // Do more work
+    MPI_Wait(&req_min, MPI_STATUS_IGNORE); // Wait again
+    for (int i = 0; i < SIZE; ++i) c[i] += min_b / 2.0; // Rest of the work
+    for (int i = 0; i < SIZE; ++i) sum_c += c[i];
+
+    avg_c = sum_c / SIZE;
+    MPI_Allreduce(&avg_c, &avg_c, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    avg_c /= size;
+    MPI_Finalize(); return 0;
+}
+```
+
+#### 4.3.6. MPI_Bcast
+
+```c++
+#include <mpi.h>
+
+int main(int argc, char** argv) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int data[4];
+    if (rank == 0) {  data [0] = 0; data [1] = 1; data [2] = 2; data [3] = 3; }
+    else {            data [0] = 0; data [1] = 0; data [2] = 0; data [3] = 0; }
+    MPI_Bcast(data, 4, MPI_INT, 0 /*root*/, MPI_COMM_WORLD);
+    MPI_Finalize();
+}
+```
+
+#### 4.3.7. MPI_Scatter
+
+```c++
+int main( int argc , char** argv) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int data[4];
+    if (rank == 0) { data [0] = 0; data [1] = 1; data [2] = 2; data [3] = 3; }
+    else { data [0] = 0; data [1] = 0; data [2] = 0; data [3] = 0; }
+    MPI_Scatter(data, 1, MPI_INT, // send
+                data, 1, MPI_INT, // recv
+                0 /*root*/, MPI_COMM_WORLD);
+    MPI_Finalize();
+}
+```
+
+### 4.4. window allocation
+
+#### 4.4.1. allocate and free window
+
+you don't need to allocate memory yourself
+
+```c++
+int main(int argc, char** argv) {
+    int *a;
+    MPI_Win win;
+    MPI_Init(&argc, &argv);
+    /* collectively create remotely accessible memory in the window */
+    MPI_Win_allocate(1000*sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &a, &win);
+    /* Array ‘a’ is now accessible from all processes in MPI_COMM_WORLD */
+    MPI_Win_free(&win);
+    MPI_Finalize();
+    return 0;
+}
+```
+
+#### 4.4.2. create window
+
+you need to allocate memory yourself
+
+```c++
+int main(int argc, char** argv) {
+    int *a;
+    MPI_Win win;
+    MPI_Init(&argc, &argv);
+    /* create private memory in every MPI process */
+    a = (void *) malloc(1000 * sizeof(int));
+    /* use private memory like you normally would */
+    a[0] = 1; a[1] = 2;
+    /* collectively declare memory as remotely accessible */
+    MPI_Win_create(a, 1000*sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+    /* Array ‘a’ is now accessibly by all processes in MPI_COMM_WORLD */
+    MPI_Win_free(&win);
+    MPI_Finalize();
+    return 0;
+}
+```
+
+#### 4.4.3. dynamically create
+
+```c++
+int main(int argc, char** argv) {
+    int *a;
+    MPI_Win win;
+    MPI_Init(&argc, &argv);
+    MPI_Win_create_dynamic(MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+    /* create private memory in every MPI process */
+    a = (void *) malloc(1000 * sizeof(int));
+    
+    /* use private memory like you normally would */
+    a[0] = 1; a[1] = 2;
+
+    /* locally declare memory as remotely accessible */
+    MPI_Win_attach(win, a, 1000*sizeof(int));
+
+    /* Array ‘a’ is now accessible from all processes in MPI_COMM_WORLD*/
+
+    /* undeclare public memory */
+    MPI_Win_detach(win, a);
+    MPI_Win_free(&win);
+    MPI_Finalize();
+    return 0;
+}
+```
