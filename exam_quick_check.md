@@ -18,6 +18,8 @@
         - [2.3.4. ordered](#234-ordered)
         - [2.3.5. reduction](#235-reduction)
         - [2.3.6. runtime routines](#236-runtime-routines)
+        - [2.3.7. Environment variables (ICVs)](#237-environment-variables-icvs)
+        - [2.3.8. lock](#238-lock)
 - [3. SIMD](#3-simd)
     - [3.1. compile](#31-compile)
     - [3.2. basics](#32-basics)
@@ -26,8 +28,8 @@
     - [4.1. compile](#41-compile)
     - [4.2. basics](#42-basics)
         - [4.2.1. MPI_Comm_split](#421-mpi_comm_split)
-        - [MPI_Sendrecv](#mpi_sendrecv)
-        - [4.2.2. reuse processes for parallelization](#422-reuse-processes-for-parallelization)
+        - [4.2.2. MPI_Sendrecv](#422-mpi_sendrecv)
+        - [4.2.3. reuse processes for parallelization](#423-reuse-processes-for-parallelization)
     - [4.3. all sorts of collectives](#43-all-sorts-of-collectives)
         - [4.3.1. MPI_Gather](#431-mpi_gather)
         - [4.3.2. MPI_Allgather](#432-mpi_allgather)
@@ -251,6 +253,7 @@ $(CXX) $(CXX_FLAGS) -o student_submission student_submission.cpp
         }
     }
     ```
+* when you try to write a variable defined outside of the parallel block, check if you need to privatize it
 
 ### 2.3. typical concepts
 
@@ -363,6 +366,44 @@ int omp_get_thread_num();
 
 // get the number of processors
 int omp_get_num_procs();
+```
+
+#### 2.3.7. Environment variables (ICVs)
+
+1. `OMP_NUM_THREAD=4`
+    * set the number of threads in a team of parallel region
+
+2. `OMP_SCHEDULE="dynamic" OMP_SCHEDULE="GUIDED,4"`
+    * selects scheduling strategy to be applied at runtime
+    * schedule clause in the code takes precedence
+
+3. `OMP_DYNAMIC=TRUE`
+    * allow runtime system to determine the number of threads
+
+4. `OMP_NESTED=TRUE`
+    * allow nesting of parallel regions
+    * if supported by the runtime
+
+#### 2.3.8. lock
+
+```c++
+#include <omp.h>
+int id;
+omp_lock_t lock;
+
+omp_init_lock(lock);
+
+#pragma omp parallel shared(lock) private(id) {
+    id = omp_get_thread_num();
+    omp_set_lock(&lock); //Only a single thread writes
+    printf("My Thread num is: %d", id);
+    omp_unset_lock(&lock);
+
+    while (!omp_test_lock(&lock)) other_work(id); //Lock not obtained
+    real_work(id); //Lock obtained
+    omp_unset_lock(&lock); //Lock freed
+}
+omp_destroy_lock(&lock);
 ```
 
 ## 3. SIMD
@@ -528,7 +569,7 @@ int main ( int argc , char ** argv )
 }
 ```
 
-#### MPI_Sendrecv
+#### 4.2.2. MPI_Sendrecv
 
 ```c++
 int main1(int argc, char* argv[]) {
@@ -565,7 +606,7 @@ int main2(int argc, char* argv[]) {
 }
 ```
 
-#### 4.2.2. reuse processes for parallelization
+#### 4.2.3. reuse processes for parallelization
 
 * basic idea of parallelization with MPI: using non-blocking send and receive to overlap processing processes
 
