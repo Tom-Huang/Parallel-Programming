@@ -366,6 +366,14 @@ int omp_get_thread_num();
 
 // get the number of processors
 int omp_get_num_procs();
+
+#pragma omp proc_bind(KEYWORD)
+// KEYWORD could be:
+// true: threads are bound to cores
+// false: threads are not bound and can be migrated
+// master: new threads are located "close" to their master threads
+// close: new threads are located "close" to their master threads
+// spread: new threads are spread out as much as possible
 ```
 
 #### 2.3.7. Environment variables (ICVs)
