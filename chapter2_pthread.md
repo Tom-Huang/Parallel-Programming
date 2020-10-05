@@ -174,9 +174,9 @@ waiting based on the value of a shared variable. One thread needs to wait for a 
 
     ```c++
     if (some other condition){
-        // this will unlock the thread that is waiting with con d
+        // this will unlock only a thread that is waiting for cond
         pthread_cond_signal(&cond);
-        // or send to all thread to make them wake up
+        // or send to all thread waiting for cond to make them wake up
         pthread_cond_broadcast(&cond);
     }
     ```

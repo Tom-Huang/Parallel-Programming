@@ -53,6 +53,7 @@ the code will run the parallel block OMP_NUM_THREADS times
 * must be in a parallel region
 * each section within a sections block is executed once by one thread
 * Threads that finished their section wait at an implicit barrier at the end of the sections block
+* difference between section and task: when using section, all other threads wait until the sections block end. But when using task, if no `taskwait` is specified, all tasks will be created and finished with different possible time.
 
 ```c++
 #pragma omp parallel sections [parameters]
