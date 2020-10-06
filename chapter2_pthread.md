@@ -8,6 +8,7 @@
     - [2.1. how to use pthread](#21-how-to-use-pthread)
         - [2.1.1. create/fork/join thread](#211-createforkjoin-thread)
         - [2.1.2. how to use pthread](#212-how-to-use-pthread)
+        - [pthread routines](#pthread-routines)
         - [2.1.3. how to create lock](#213-how-to-create-lock)
     - [2.2. lock granularity](#22-lock-granularity)
         - [2.2.1. Coarse grained locking: one single lock for all data](#221-coarse-grained-locking-one-single-lock-for-all-data)
@@ -86,6 +87,19 @@ pthread_once(ctrl, fct)
     // create thread
     result_code = pthread_create(&thread, NULL, perform_work, &thread_arg);
     ```
+
+#### pthread routines
+
+```c++
+// get own thread ID
+pthread_self();
+
+// compare two threads IDs
+pthread_equal(t1, t2);
+
+// run a particular function once in a process
+pthread_once(ctrl, fct);
+```
 
 #### 2.1.3. how to create lock
 
