@@ -8,8 +8,8 @@
     - [2.1. how to use pthread](#21-how-to-use-pthread)
         - [2.1.1. create/fork/join thread](#211-createforkjoin-thread)
         - [2.1.2. how to use pthread](#212-how-to-use-pthread)
-        - [pthread routines](#pthread-routines)
-        - [2.1.3. how to create lock](#213-how-to-create-lock)
+        - [2.1.3. pthread routines](#213-pthread-routines)
+        - [2.1.4. how to create lock](#214-how-to-create-lock)
     - [2.2. lock granularity](#22-lock-granularity)
         - [2.2.1. Coarse grained locking: one single lock for all data](#221-coarse-grained-locking-one-single-lock-for-all-data)
         - [2.2.2. Fine grained locking: one lock for each data element](#222-fine-grained-locking-one-lock-for-each-data-element)
@@ -88,7 +88,7 @@ pthread_once(ctrl, fct)
     result_code = pthread_create(&thread, NULL, perform_work, &thread_arg);
     ```
 
-#### pthread routines
+#### 2.1.3. pthread routines
 
 ```c++
 // get own thread ID
@@ -101,7 +101,7 @@ pthread_equal(t1, t2);
 pthread_once(ctrl, fct);
 ```
 
-#### 2.1.3. how to create lock
+#### 2.1.4. how to create lock
 
 1. define a mutex lock globally and initialize it with `PTHREAD_MUTEX_INITIALIZER` or dynamically
 

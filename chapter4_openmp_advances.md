@@ -37,6 +37,13 @@ int omp_get_num_procs();
     * allow nesting of parallel regions
     * if supported by the runtime
 
+5. `OMP_PROC_BIND=spread`
+    * set the locations of threads
+
+6. `OMP_PLACES={0:4},{4:4}`
+    * set the locations of threads. Places of threads are defined with comma seperated list
+    * `<lower-bound> : <length> : <stride>` describe "`<lower-bound>, <lower-bound> + <stride>, ...`"
+
 ## 2. Data races
 
 Three kinds of data races:
@@ -283,7 +290,7 @@ because complier optimization will change the order of the code. Flush can avoid
 * loads/stores executed before the flush have to be finished
 * load/stores following the flush are not allowed to be executed early
 
-### Distribute threads
+### 3.3. Distribute threads
 
 ```c++
 #pragma omp parallel for proc_bind(spread)
