@@ -283,7 +283,16 @@ because complier optimization will change the order of the code. Flush can avoid
 * loads/stores executed before the flush have to be finished
 * load/stores following the flush are not allowed to be executed early
 
+### Distribute threads
 
+```c++
+#pragma omp parallel for proc_bind(spread)
+// spread: new threads are spread out as much as possible
+// master: new threads are always co-located with master
+// close: new threads are located close to their master threads
+// true: threads are bound to cores
+// false: threads are not bound and can be migrated
+```
 
 
 
